@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProntoCobro | Prototipo Funcional</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2ecc71;     /* Verde Éxito */
+            --dark: #2c3e50;        /* Azul Oscuro Corporativo */
+            --bg: #f0f2f5;          /* Gris Fondo */
+            --white: #ffffff;
+            --danger: #e74c3c;      /* Rojo Error/Perdida */
+            --warning: #f1c40f;     /* Amarillo Pendiente */
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            background-color: var(--bg);
+            color: var(--dark);
+            padding-bottom: 80px; /* Espacio para navbar móvil si fuera abajo */
+        }
+
+        /* --- MARCA DE AGUA --- */
+        /* --- MARCA DE AGUA CON LOGO --- */
+body::before {
+    content: "";
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60vw; /* Tamaño de la marca de agua */
+    height: 60vh;
+    
+    /* CAMBIA 'logo.png' POR TU ARCHIVO REAL */
+    background-image: url('./Isotipo.png'); 
+    
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.04; /* Casi invisible para que no estorbe */
+    z-index: -1;
+    pointer-events: none;
+}
+
+        /* --- NAVBAR --- */
+        .navbar {
+            background: var(--dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .logo-box { display: flex; align-items: center; gap: 12px; }
+        .logo-icon { 
+            width: 45px; height: 45px; 
+            background: var(--primary); 
+            border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 1.5rem; font-weight: bold; color: white;
+            box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+        }
+        .brand { font-size: 1.4rem; font-weight: 700; letter-spacing: 1px; }
+
+        .nav-menu { display: flex; gap: 20px; list-style: none; margin: 0; padding: 0; }
+        .nav-btn {
+            background: none; border: none; color: #bdc3c7;
+            font-size: 1rem; cursor: pointer; padding: 5px 10px;
+            transition: 0.3s; font-family: inherit;
+        }
+        .nav-btn:hover, .nav-btn.active { color: var(--primary); font-weight: 600; }
+        .nav-btn.active { border-bottom: 2px solid var(--primary); }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .main-container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+
+        /* --- TABS --- */
+        .tab-content { display: none; opacity: 0; transition: opacity 0.3s ease; }
+        .active-tab { display: block; opacity: 1; }
+
+        /* --- CARDS & UI --- */
+        .card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        h2, h3 { margin-top: 0; }
+        .text-primary { color: var(--primary); }
+        .text-danger { color: var(--danger); }
+
+        /* --- DASHBOARD --- */
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .stat-box { text-align: center; padding: 20px; background: #f8f9fa; border-radius: 12px; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: var(--dark); display: block; }
+        .stat-label { font-size: 0.9rem; color: #7f8c8d; }
+
+        /* --- APUESTAS --- */
+        .event-card {
+            border-left: 5px solid var(--primary);
+            position: relative;
+            transition: transform 0.2s;
+        }
+        .event-card:hover { transform: translateY(-3px); }
+        .badge {
+            position: absolute; top: 15px; right: 15px;
+            background: var(--dark); color: var(--primary);
+            padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold;
+        }
+        
+        .matchup { display: flex; justify-content: space-between; margin-top: 20px; gap: 10px; }
+        .option-btn {
+            flex: 1;
+            background: #f1f2f6;
+            border: 1px solid #dfe4ea;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s;
+        }
+        .option-btn:hover { background: #dfe6e9; border-color: var(--primary); }
+        .option-name { display: block; font-weight: 600; }
+        .option-odds { font-size: 0.9rem; color: var(--primary); font-weight: bold; }
+
+        /* --- MIS APUESTAS (TICKETS) --- */
+        .ticket {
+            border: 1px dashed #ccc;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ticket.won { border: 1px solid var(--primary); background: #e8f5e9; }
+        .ticket.lost { border: 1px solid var(--danger); background: #ffebee; }
+        
+        .sim-btn {
+            background: var(--dark);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        /* --- BILLETERA --- */
+        .wallet-banner {
+            background: linear-gradient(135deg, #2c3e50 0%, #000000 100%);
+            color: white;
+            text-align: center;
+            padding: 40px;
+        }
+        .balance-display { font-size: 3.5rem; font-weight: 700; margin: 10px 0; color: var(--primary); }
+        .tasa-ticker {
+            display: inline-block;
+            background: rgba(255,255,255,0.1);
+            padding: 6px 15px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+        
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
+        .btn-action {
+            padding: 15px; border: none; border-radius: 10px;
+            font-weight: 600; font-size: 1rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-deposit { background: var(--primary); color: white; }
+        .btn-withdraw { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); }
+
+        /* --- SOPORTE --- */
+        .support-link {
+            display: block; padding: 15px; margin-bottom: 10px;
+            text-decoration: none; border-radius: 10px; font-weight: 600;
+            text-align: center;
+        }
+        .wa-link { background: #25D366; color: white; }
+        .email-link { background: var(--dark); color: var(--primary); }
+
+        /* Responsivo */
+        @media (max-width: 600px) {
+            .navbar { flex-direction: column; gap: 10px; }
+            .nav-menu { gap: 10px; flex-wrap: wrap; justify-content: center; }
+            .matchup { flex-direction: column; }
+        }
+        
+        .nav-logo {
+    height: 50px; /* Tamaño del logo en la barra */
+    width: auto;
+    filter: drop-shadow(0px 0px 5px rgba(46, 204, 113, 0.3)); /* Resplandor verde */
+    transition: transform 0.3s ease;
+}
+
+.nav-logo:hover {
+    transform: scale(1.1); /* Efecto interactivo */
+}
+
+/* Ajuste del nombre para que combine con el logo */
+.brand {
+    font-size: 1.6rem;
+    font-weight: 800;
+    background: linear-gradient(to right, #2ecc71, #ffffff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo-box">
+    <img src="./isotipo.png" alt="Logo" class="nav-logo">
+    
+    <span class="brand">ProntoCobro</span>
+</div>
+    <ul class="nav-menu">
+        <li><button onclick="nav('inicio')" class="nav-btn active" id="btn-inicio">Inicio</button></li>
+        <li><button onclick="nav('apuestas')" class="nav-btn" id="btn-apuestas">Apuestas</button></li>
+        <li><button onclick="nav('mis-apuestas')" class="nav-btn" id="btn-mis-apuestas">Mis Tickets</button></li>
+        <li><button onclick="nav('billetera')" class="nav-btn" id="btn-billetera">Billetera</button></li>
+        <li><button onclick="nav('soporte')" class="nav-btn" id="btn-soporte">Soporte</button></li>
+    </ul>
+</nav>
+
+<div class="main-container">
+
+    <div id="inicio" class="tab-content active-tab">
+        <div class="card">
+            <h2>👋 Hola, Victor Jerez</h2>
+            <p>ID: <strong>#V28001871</strong> | Nivel: <span class="text-primary">Experto Llanero</span></p>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <span class="stat-value" id="dash-balance">$0.00</span>
+                <span class="stat-label">Saldo Disponible</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-value" id="dash-active">0</span>
+                <span class="stat-label">Apuestas Activas</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-value" id="dash-won">$0.00</span>
+                <span class="stat-label">Ganancias Totales</span>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 25px;">
+            <h3>📢 Noticias del Llano</h3>
+            <p>🔥 <strong>Torneo de Coleo:</strong> Se confirma la asistencia de "El Tigre" Peña para este fin de semana.</p>
+            <p>💡 <strong>Recordatorio:</strong> Recargas vía Pago Móvil se aprueban en menos de 5 minutos.</p>
+        </div>
+    </div>
+
+    <div id="apuestas" class="tab-content">
+        <h2 style="margin-bottom: 20px;">Eventos Disponibles</h2>
+        
+        <div class="card event-card">
+            <span class="badge">COLEO</span>
+            <h3>Manga Layret Flores - Tarde de Toros</h3>
+            <p>🏆 Ganador del Turno Final</p>
+            <div class="matchup">
+                <div class="option-btn" onclick="iniciarApuesta('Coleo: Tigre Peña', 1.80)">
+                    <span class="option-name">Tigre Peña</span>
+                    <span class="option-odds">x1.80</span>
+                </div>
+                <div class="option-btn" onclick="iniciarApuesta('Coleo: Luis Páez', 2.10)">
+                    <span class="option-name">Luis Páez</span>
+                    <span class="option-odds">x2.10</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card event-card">
+            <span class="badge">GALLOS</span>
+            <h3>Club Gallístico El Socorro</h3>
+            <p>⚔️ Pelea Estelar (15 min)</p>
+            <div class="matchup">
+                <div class="option-btn" onclick="iniciarApuesta('Gallo Marañón', 1.90)">
+                    <span class="option-name">Gallo Marañón</span>
+                    <span class="option-odds">x1.90</span>
+                </div>
+                <div class="option-btn" onclick="iniciarApuesta('Gallo Jabao', 1.90)">
+                    <span class="option-name">Gallo Jabao</span>
+                    <span class="option-odds">x1.90</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card event-card">
+            <span class="badge">SOFTBOL</span>
+            <h3>Final Municipal</h3>
+            <p>⚾ Ganador del Partido</p>
+            <div class="matchup">
+                <div class="option-btn" onclick="iniciarApuesta('Softbol: Llaneros', 1.50)">
+                    <span class="option-name">Los Llaneros</span>
+                    <span class="option-odds">x1.50</span>
+                </div>
+                <div class="option-btn" onclick="iniciarApuesta('Softbol: Tigres', 2.40)">
+                    <span class="option-name">Los Tigres</span>
+                    <span class="option-odds">x2.40</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mis-apuestas" class="tab-content">
+        <h2>Mis Tickets</h2>
+        <div id="active-bets-container">
+            <p style="text-align: center; color: #888;">No tienes apuestas activas.</p>
+        </div>
+
+        <h3 style="margin-top: 30px;">Historial Cerrado</h3>
+        <div id="history-bets-container">
+            </div>
+    </div>
+
+    <div id="billetera" class="tab-content">
+        <div class="card wallet-banner">
+            <div id="tasa-display" class="tasa-ticker">Cargando Tasa BCV...</div>
+            <small>TU SALDO ACTUAL</small>
+            <div class="balance-display" id="wallet-balance">$0.00</div>
+            <p style="font-size: 0.8rem; opacity: 0.8;">Retención del 3% aplica solo sobre ganancias netas.</p>
+            
+            <div class="action-grid">
+                <button class="btn-action btn-deposit" onclick="recargarSaldo()">
+                    📥 Recargar
+                </button>
+                <button class="btn-action btn-withdraw" onclick="retirarSaldo()">
+                    📤 Retirar
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Movimientos Financieros</h3>
+            <ul id="tx-history" style="list-style: none; padding: 0;">
+                </ul>
+        </div>
+    </div>
+
+    <div id="soporte" class="tab-content">
+        <div class="card">
+            <h2>Centro de Ayuda</h2>
+            <p>Si tienes problemas con una recarga o el resultado de un evento, contáctanos directamente.</p>
+            
+            <a href="https://wa.me/584121404943" target="_blank" class="support-link wa-link">
+                📱 Chat WhatsApp (+58 412 1404943)
+            </a>
+            <a href="mailto:vmjldev@gmail.com" class="support-link email-link">
+                ✉️ Enviar Correo (vmjldev@gmail.com)
+            </a>
+        </div>
+        <div class="card">
+            <h3>Configuración</h3>
+            <p>🔒 Cifrado: <strong>AES-256</strong> (Activo)</p>
+            <p>🔢 Versión: <strong>Prototipo v2.1</strong></p>
+            <button onclick="borrarDatos()" style="background: #e74c3c; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; margin-top: 10px;">Reinicio de Fábrica (Borrar Datos)</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- ESTADO INICIAL ---
+    let appState = {
+        saldo: 100.00, // Saldo inicial de prueba
+        apuestas: [],
+        transacciones: [],
+        gananciaTotal: 0
+    };
+
+    let tasaBCV = 381.20; // Valor fallback
+
+    // --- CARGA Y GUARDADO (PERSISTENCIA) ---
+    function init() {
+        const saved = localStorage.getItem('prontocobro_db');
+        if (saved) {
+            appState = JSON.parse(saved);
+        } else {
+            registrarTransaccion("Bono de Bienvenida", 100.00, "ingreso");
+        }
+        actualizarUI();
+        obtenerTasa();
+    }
+
+    function save() {
+        localStorage.setItem('prontocobro_db', JSON.stringify(appState));
+        actualizarUI();
+    }
+
+    function borrarDatos() {
+        if(confirm("¿Borrar todo el progreso y reiniciar saldo?")) {
+            localStorage.removeItem('prontocobro_db');
+            location.reload();
+        }
+    }
+
+    // --- NAVEGACIÓN ---
+    function nav(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active-tab'));
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active-tab');
+        document.getElementById(`btn-${tabId}`).classList.add('active');
+    }
+
+    // --- API TASA ---
+    async function obtenerTasa() {
+        try {
+            const res = await fetch('https://pydolarve.org/api/v1/dollar?page=bcv');
+            // Como fallback usamos una API más general si esa falla
+            // const res = await fetch('https://open.er-api.com/v6/latest/USD'); 
+            const data = await res.json();
+            
+            // Ajuste según la API que responda. Asumimos una estructura genérica o fallback
+            if(data.monitors && data.monitors.bcv) {
+                tasaBCV = parseFloat(data.monitors.bcv.price);
+            } else if (data.rates && data.rates.VES) {
+                tasaBCV = data.rates.VES;
+            }
+            
+            document.getElementById('tasa-display').innerHTML = `BCV: <strong>${tasaBCV.toFixed(2)} VES</strong>`;
+        } catch (e) {
+            console.log("Error API Tasa, usando local");
+            document.getElementById('tasa-display').innerText = `BCV (Ref): ${tasaBCV.toFixed(2)} VES`;
+        }
+    }
+
+    // --- LÓGICA DE APUESTAS ---
+    function iniciarApuesta(evento, cuota) {
+        let monto = prompt(`Apuesta: ${evento}\nCuota: x${cuota}\n\nIngresa monto en $:`);
+        monto = parseFloat(monto);
+
+        if (isNaN(monto) || monto <= 0) {
+            alert("Monto inválido."); return;
+        }
+        if (monto > appState.saldo) {
+            alert("Saldo insuficiente. Recarga tu billetera."); return;
+        }
+
+        // Descontar saldo
+        appState.saldo -= monto;
+        
+        // Crear Ticket
+        const nuevoTicket = {
+            id: Date.now(),
+            evento: evento,
+            monto: monto,
+            cuota: cuota,
+            estado: 'PENDIENTE',
+            fecha: new Date().toLocaleTimeString()
+        };
+
+        appState.apuestas.unshift(nuevoTicket);
+        registrarTransaccion(`Apuesta: ${evento}`, monto, "egreso");
+        
+        save();
+        alert("✅ ¡Apuesta Registrada con Éxito!");
+        nav('mis-apuestas'); // Llevar al usuario a ver su ticket
+    }
+
+    // --- SIMULACIÓN DE RESULTADOS (EL TRUCO) ---
+    function simularResultado(idTicket) {
+        const ticket = appState.apuestas.find(t => t.id === idTicket);
+        if (!ticket || ticket.estado !== 'PENDIENTE') return;
+
+        // Simulamos 50% de probabilidad (o tú decides como admin)
+        // Para la demo, usaremos un confirm para que TÚ elijas si gana o pierde
+        const gana = confirm(`SIMULACIÓN ADMIN:\nEvento: ${ticket.evento}\n\n¿Quieres que este ticket GANE? \n(Aceptar = Gana, Cancelar = Pierde)`);
+
+        if (gana) {
+            const gananciaBruta = ticket.monto * ticket.cuota;
+            const gananciaNeta = gananciaBruta - ticket.monto;
+            const comision = gananciaNeta * 0.03; // 3% solo de la ganancia
+            const pagoFinal = ticket.monto + (gananciaNeta - comision);
+
+            appState.saldo += pagoFinal;
+            appState.gananciaTotal += (gananciaNeta - comision);
+            ticket.estado = 'GANADA';
+            ticket.pago = pagoFinal;
+            
+            registrarTransaccion(`Premio: ${ticket.evento}`, pagoFinal, "ingreso");
+            alert(`🎉 ¡GANASTE!\nCobraste: $${pagoFinal.toFixed(2)}\n(Comisión aplicada: $${comision.toFixed(2)})`);
+        } else {
+            ticket.estado = 'PERDIDA';
+            ticket.pago = 0;
+            alert("❌ Lo sentimos, suerte para la próxima.");
+        }
+
+        save();
+    }
+
+    // --- FINANZAS ---
+    function recargarSaldo() {
+        let monto = parseFloat(prompt("Monto a recargar ($):"));
+        if (monto > 0) {
+            const ref = prompt(`Tasa: ${tasaBCV} VES/$\nTotal a pagar: ${(monto * tasaBCV).toFixed(2)} Bs.\n\nIngresa los últimos 4 dígitos de la referencia:`);
+            if (ref) {
+                appState.saldo += monto;
+                registrarTransaccion(`Recarga Pago Móvil (Ref: ${ref})`, monto, "ingreso");
+                save();
+                alert("Recarga exitosa.");
+            }
+        }
+    }
+
+    function retirarSaldo() {
+        let monto = parseFloat(prompt(`Saldo Disponible: $${appState.saldo.toFixed(2)}\n\nMonto a retirar:`));
+        if (monto > 0 && monto <= appState.saldo) {
+            appState.saldo -= monto;
+            registrarTransaccion("Retiro a Cuenta Bancaria", monto, "egreso");
+            save();
+            alert("Retiro procesado. El dinero llegará en breve.");
+        } else {
+            alert("Saldo insuficiente.");
+        }
+    }
+
+    function registrarTransaccion(desc, monto, tipo) {
+        appState.transacciones.unshift({
+            desc, monto, tipo, fecha: new Date().toLocaleDateString()
+        });
+    }
+
+    // --- ACTUALIZAR INTERFAZ ---
+    function actualizarUI() {
+        // Dashboard
+        document.getElementById('dash-balance').innerText = `$${appState.saldo.toFixed(2)}`;
+        document.getElementById('wallet-balance').innerText = `$${appState.saldo.toFixed(2)}`;
+        document.getElementById('dash-active').innerText = appState.apuestas.filter(a => a.estado === 'PENDIENTE').length;
+        document.getElementById('dash-won').innerText = `$${appState.gananciaTotal.toFixed(2)}`;
+
+        // Tickets Activos
+        const containerActivos = document.getElementById('active-bets-container');
+        const pendientes = appState.apuestas.filter(a => a.estado === 'PENDIENTE');
+        
+        if (pendientes.length === 0) {
+            containerActivos.innerHTML = '<p style="text-align:center; color:#999">No tienes apuestas en juego.</p>';
+        } else {
+            containerActivos.innerHTML = pendientes.map(t => `
+                <div class="ticket" style="border-left: 4px solid var(--warning);">
+                    <div>
+                        <strong>${t.evento}</strong><br>
+                        <small>Apuesta: $${t.monto} | Cuota: ${t.cuota}</small>
+                    </div>
+                    <button class="sim-btn" onclick="simularResultado(${t.id})">⚡ Simular Resultado</button>
+                </div>
+            `).join('');
+        }
+
+        // Historial Tickets
+        const containerHist = document.getElementById('history-bets-container');
+        const cerradas = appState.apuestas.filter(a => a.estado !== 'PENDIENTE');
+        containerHist.innerHTML = cerradas.map(t => `
+            <div class="ticket ${t.estado === 'GANADA' ? 'won' : 'lost'}">
+                <div>
+                    <strong>${t.evento}</strong><br>
+                    <small>${t.estado} | Retorno: $${t.pago || 0}</small>
+                </div>
+                <div style="font-size:1.2rem">${t.estado === 'GANADA' ? '🤑' : '😢'}</div>
+            </div>
+        `).join('');
+
+        // Historial Transacciones
+        const txList = document.getElementById('tx-history');
+        txList.innerHTML = appState.transacciones.map(tx => `
+            <li style="display:flex; justify-content:space-between; padding: 10px 0; border-bottom: 1px solid #eee;">
+                <span>${tx.desc} <br><small style="color:#aaa">${tx.fecha}</small></span>
+                <span style="color: ${tx.tipo === 'ingreso' ? 'var(--primary)' : 'var(--danger)'}; font-weight:bold;">
+                    ${tx.tipo === 'ingreso' ? '+' : '-'}$${tx.monto.toFixed(2)}
+                </span>
+            </li>
+        `).join('');
+    }
+
+    // Arrancar la app
+    init();
+
+</script>
+</body>
+</html>
